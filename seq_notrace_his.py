@@ -19,34 +19,37 @@ for filename in os.listdir('data'):
 		
 		city_num=len(delay.keys())
 		fig=plt.figure()
-
 		cfg_list=[]
+		cfgl_list=[]
 		data_pair_list=[]
 		cmap = plt.get_cmap('tab10')
 		it=0
 		for city, late in delay.items():
-			color=cmap(it)
-			cfg,=plt.plot([],[],color=color,marker='o')
+			color = cmap(it)
+			cfg, = plt.plot([], [], color=color,marker='o')
+			cfgl, = plt.plot([], [], color=color)
 			cfg_list.append(cfg)
-			time=timestamp[city]
-			time=list((np.array(time)-time[0])/1000)
+			cfgl_list.append(cfgl)
+			time = timestamp[city]
+			time = list((np.array(time)-time[0])/1000)
 			# plt.plot(time,late)
-			data_pair_list.append((time,late))
-			it+=1
+			data_pair_list.append((time, late))
+			it += 1
 
-		plt.xlim(0, data_pair_list[0][0][100])
-		plt.ylim(200, 400)
-		plt.title("Latency over Time")
-		plt.xlabel('Timestamp (s)')
-		plt.ylabel('Latency (ms)')
-		# metadata = dict(title="Movie", artist="sourabh")
 		writer = anime.PillowWriter(fps=50)
 		with writer.saving(fig, os.path.join('res/seq_notrace_his', purename+'.gif'), 100):
+			plt.xlim(0, data_pair_list[0][0][100])
+			plt.ylim(200, 400)
+			plt.title("Latency over Time")
+			plt.xlabel('Timestamp (s)')
+			plt.ylabel('Latency (ms)')
+			
 			for i in range(len(cfg_list)):
 				for j in range(0,100):
 					cfg_list[i].set_data(data_pair_list[i][0][j],data_pair_list[i][1][j])
 					writer.grab_frame()
-				cfg_list[i].set_data(data_pair_list[i][0][:99],data_pair_list[i][1][:99])
+				cfgl_list[i].set_data(data_pair_list[i][0][:100],data_pair_list[i][1][:100])
 				writer.grab_frame()
-		for _ in range(10):
-			writer.grab_frame()
+			# cfgl_list[i].set_data([],[])
+			for _ in range(10):
+				writer.grab_frame()
