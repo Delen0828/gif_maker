@@ -4,9 +4,9 @@ import numpy as np
 # import pandas as pd
 import random
 
-def xlist_create(duration):
+def xList_create(duration):
 	return list(range(0,duration,1))
-def ylist_create(index,avg,var,spike,spike_h,duration):
+def yList_create(index,avg,var,spike,spike_h,duration):
 	baseline=np.ones(duration)*avg
 	variation=np.random.random(duration)*var
 	if (spike == 1):
@@ -20,26 +20,32 @@ VAR_LIST=[[6,3],[3,6],[3,3],[6,6]]
 SPIKE_LIST=[[0,1],[1,0],[0,0]]
 SPIKE_H=5
 CBF_PALLETE=['#000000','#F35555','#56B0FF','#E6E335']
+CBF_NAME=['k','r','b','y']
 for AVG in AVG_LIST:
 	for VAR in VAR_LIST:
 		for SPIKE in SPIKE_LIST:
 			fig = plt.figure()
-			xlist=[] #Length of the line
-			ylist=[] #function that INPUT: AVG,VAR,SPIKE,OUTPUT: A series of num
-			linelist=[]
+			xList=[] #Length of the line
+			yList=[] #function that INPUT: AVG,VAR,SPIKE,OUTPUT: A series of num
+			lineList=[]
 			pallete=random.sample(CBF_PALLETE,k=LINE_NUM)
+			colorName=''
+			for color in pallete:
+				colorName+=(CBF_NAME[CBF_PALLETE.index(color)])
 			for i in range(LINE_NUM):
 				l, = plt.plot([], [], color=pallete[i])
-				xlist.append(xlist_create(DURATION))
-				ylist.append(ylist_create(i,AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION))
+				xList.append(xList_create(DURATION))
+				yList.append(yList_create(i,AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION))
 				plt.xlim(0,DURATION) #depend on Duration
-				plt.ylim(-min(ylist[-1])-max(VAR), max(ylist[-1])+max(VAR))
-				linelist.append(l)
+				plt.ylim(-15, 15)
+				lineList.append(l)
+			plt.close()
 			
 			writer = anime.PillowWriter(fps=50)
 
-			with writer.saving(fig, f"gif/trace_AVG{AVG}_VAR{VAR}_SPIKE{SPIKE}.gif", 100):
+			with writer.saving(fig, f"gif/trace_AVG{AVG}_VAR{VAR}_SPIKE{SPIKE}_{colorName}.gif", 100):
 				for i in range(LINE_NUM):
 					for j in range(DURATION):
-						linelist[i].set_data(xlist[i][:j], ylist[i][:j])
+						lineList[i].set_data(xList[i][:j], yList[i][:j])
 						writer.grab_frame()
+print(DURATION*LINE_NUM/50)
