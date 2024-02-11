@@ -2,6 +2,7 @@ var jsPsych = initJsPsych();
 
 var timeline = [];
 var gif_name = './trace_AVG[-5, 5]_VAR[3, 3]_SPIKE[0, 1]_rb.gif'
+//TODO: This will be sampled from seq_notrace_his for 5/6
 var gifShow = {
 	stimulus_height: 480,
 	stimulus_width: 640,
