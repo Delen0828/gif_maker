@@ -89,8 +89,8 @@ elif LINE_NUM==4:
 
 CFG_LIST=[]
 
-IBM_PALLETE=['#648FFF','#DC267F','#FE6100','#FFB000'] 
-COLOR_NAME=['b','r','o','y']
+IBM_PALLETE=['#117733','#88CCEE','#DDCC77','#AA4499'] 
+COLOR_NAME=['g','b','y','p']
 for acfg in AVG_CFG:
 	for vcfg in VAR_CFG:
 		for scfg in SPIKE_CFG:
