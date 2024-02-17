@@ -29,14 +29,7 @@ with open('mean.pkl','rb') as f:
 	mean_list=pickle.load(f)
 with open('var.pkl','rb') as f:
 	var_list=pickle.load(f)
-def xList_create(duration):
-	return list(range(0,duration,1))
-def yList_create(index,avg,var,spike,spike_h,duration):
-	baseline=np.ones(duration)*avg
-	variation=np.random.random(duration)*var
-	if spike is True:
-		variation[np.random.randint(duration)]+=spike_h*var
-	return baseline+variation
+
 
 def sampler_line(cfg,high_data,low_data):
 	if cfg == 'hh':
