@@ -4,11 +4,10 @@ import numpy as np
 # import pandas as pd
 import random
 import pickle
+from tqdm import tqdm
 SAMPLE_TIME=1
 DURATION=100
 SPIKE_H=10
-config.background_color = WHITE
-config["background_color"] = WHITE
 
 
 # Create an ArgumentParser object
@@ -24,7 +23,7 @@ parser.add_argument("--sample", type=int, default=5)
 
 # Parse the command-line arguments
 args = parser.parse_args()
-print(args)
+# print(args)
 
 with open('mean.pkl','rb') as f:
 	mean_list=pickle.load(f)
@@ -63,7 +62,7 @@ def sampler_line(cfg,high_data,low_data):
 		return None
 	
 LINE_NUM=args.line
-
+# LINE_NUM=2
 AVG_HIGH=[i for i in mean_list if i > np.median(mean_list)]
 AVG_LOW=[i for i in mean_list if i < np.median(mean_list)]
 VAR_HIGH=[i for i in var_list if i > np.median(var_list)]
@@ -86,6 +85,10 @@ CFG_LIST=[]
 
 IBM_PALLETE=['#117733','#88CCEE','#DDCC77','#AA4499'] 
 COLOR_NAME=['g','b','y','p']
+for acfg in AVG_CFG:
+	for vcfg in VAR_CFG:
+		for scfg in SPIKE_CFG:
+			CFG_LIST.append((acfg,vcfg,scfg))
 
 def xList_create(duration):
 	return list(range(0,duration,1))
@@ -95,14 +98,12 @@ def yList_create(avg,var,spike,spike_h,duration):
 	if spike is True:
 		variation[np.random.randint(duration)]+=spike_h*var
 	return baseline+variation
-def sampler_line(high_data,low_data):
-	return random.sample(high_data,1)[0]
 
 def build_plot(axes, x, y, color):
 	line = axes.plot_line_graph(x, y, add_vertex_dots=False, line_color=color)
 	return VDict({"line": line})
 
-class MyBeautifulGraph(Scene):
+class Plot(Scene):
 	def load(self):
 		with open('mean.pkl','rb') as f:
 			mean_list=pickle.load(f)
@@ -112,27 +113,44 @@ class MyBeautifulGraph(Scene):
 		self.AVG_LOW=[i for i in mean_list if i < np.median(mean_list)]
 		self.VAR_HIGH=[i for i in var_list if i > np.median(var_list)]
 		self.VAR_LOW=[i for i in var_list if i < np.median(var_list)]
+		
 	def construct(self):
-		self.load()
-		AVG,AVG2=sampler_line(self.AVG_HIGH,10)
-		VAR,VAR2=sampler_line(self.VAR_HIGH,10)
-		SPIKE,SPIKE2=sampler_line([True],[False]) 
-		y = yList_create(AVG,VAR,SPIKE,SPIKE_H,DURATION)
-		y2 = yList_create(AVG2,VAR2,SPIKE2,SPIKE_H,DURATION)
+		for cfg in tqdm(CFG_LIST):
+			acfg=cfg[0]
+			vcfg=cfg[1]
+			scfg=cfg[2]
+			self.load()
+			pallete=random.sample(IBM_PALLETE,LINE_NUM)
+			colorName=''
+			for color in pallete:
+				colorName+=(COLOR_NAME[IBM_PALLETE.index(color)])
+			self.next_section(name=f"trace_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}.gif")	
+			self.clear()
+			AVG=sampler_line('hhhh',AVG_HIGH,AVG_LOW)
+			VAR=sampler_line('hhhh',VAR_HIGH,VAR_LOW)
+			SPIKE=sampler_line('llll',[True],[False]) #This is deterministic
+			x_min, x_max, x_step = 0, DURATION, 10
+			y_min, y_max, y_step = 200, 700, 100
+			axes = Axes(
+				x_range=[x_min, x_max + x_step, x_step],
+				y_range=[y_min, y_max + y_step, y_step],
+				tips=False,
+				axis_config={'color': BLACK}
+			)
+			self.add(axes)
+			# if args.move=='seq' and args.trace and args.history :
+			for i in range(LINE_NUM):
+				plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i])
+				self.play(Create(plot["line"],run_time=1,rate_func=rate_functions.unit_interval(linear)))
+			
+			# config["output_file"]=f"trace_{colorName}.gif"
+			# with writer.saving(fig, f"testgif/seq_trace_his/line{LINE_NUM}/trace_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.gif", 100):
+			self.wait()
+			self.next_section(name=f"trace_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}.gif")
 
-		x = xList_create(DURATION)
-		x_min, x_max, x_step = 0, DURATION, 10
-		y_min, y_max, y_step = 200, 700, 100
-		axes = Axes(
-			x_range=[x_min, x_max + x_step, x_step],
-			y_range=[y_min, y_max + y_step, y_step],
-			tips=False,
-			axis_config={'color': BLACK}
-		)
 
-		self.add(axes)
-		plot = build_plot(axes, x, y, color=RED)
-		plot2 = build_plot(axes, x, y2, color=BLUE)
-		self.play(Create(plot["line"],run_time=6,rate_func=rate_functions.unit_interval(linear)))
-		self.play(Create(plot2["line"],run_time=2,rate_func=rate_functions.unit_interval(linear)))
-		self.wait()
+
+cfg={"quality": "low_quality","frame_rate":60,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"{LINE_NUM}","flush_cache":True,"progress_bar":'none'}
+with tempconfig(cfg):
+	scene = Plot()
+	scene.render()
