@@ -1,4 +1,4 @@
 # This file is used internally by FFMPEG.
-file 'file:/Users/songwen/Documents/Code Lab/gif_maker/manim/media/videos/test/1080p60/partial_movie_files/MyBeautifulGraph/2743010386_893526298_2448367344.mp4'
-file 'file:/Users/songwen/Documents/Code Lab/gif_maker/manim/media/videos/test/1080p60/partial_movie_files/MyBeautifulGraph/3790338095_3183740197_1475635710.mp4'
-file 'file:/Users/songwen/Documents/Code Lab/gif_maker/manim/media/videos/test/1080p60/partial_movie_files/MyBeautifulGraph/3790338095_4042641242_3025602259.mp4'
+file 'file:D:/CODE-LAB/gif_maker/manim/media/videos/test/1080p60/partial_movie_files/MyBeautifulGraph/2743010386_4175043135_2448367344.mp4'
+file 'file:D:/CODE-LAB/gif_maker/manim/media/videos/test/1080p60/partial_movie_files/MyBeautifulGraph/3790338095_4276371364_2520337495.mp4'
+file 'file:D:/CODE-LAB/gif_maker/manim/media/videos/test/1080p60/partial_movie_files/MyBeautifulGraph/3790338095_4042641242_2350982621.mp4'

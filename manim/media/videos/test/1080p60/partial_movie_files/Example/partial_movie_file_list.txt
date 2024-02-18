@@ -1,3 +1,0 @@
-# This file is used internally by FFMPEG.
-file 'file:/Users/songwen/Documents/Code Lab/gif_maker/manim/media/videos/test/1080p60/partial_movie_files/Example/3529212410_749072133_223132457.mp4'
-file 'file:/Users/songwen/Documents/Code Lab/gif_maker/manim/media/videos/test/1080p60/partial_movie_files/Example/3040924799_1574844911_239930990.mp4'

@@ -17,8 +17,8 @@ def yList_create(avg,var,spike,spike_h,duration):
 	if spike is True:
 		variation[np.random.randint(duration)]+=spike_h*var
 	return baseline+variation
-def sampler_line(high_data,low_data):
-	return random.sample(high_data,1)[0],random.sample(high_data,1)[0]
+def sampler_line(high_data,num):
+	return [random.sample(high_data,1,seed=i)[0] for i in range(num)]
 
 def build_plot(axes, x, y, color):
 	line = axes.plot_line_graph(x, y, add_vertex_dots=False, line_color=color)
@@ -36,8 +36,8 @@ class MyBeautifulGraph(Scene):
 		self.VAR_LOW=[i for i in var_list if i < np.median(var_list)]
 	def construct(self):
 		self.load()
-		AVG,AVG2=sampler_line(self.AVG_HIGH,self.AVG_LOW)
-		VAR,VAR2=sampler_line(self.VAR_HIGH,self.VAR_LOW)
+		AVG,AVG2=sampler_line(self.AVG_HIGH,10)
+		VAR,VAR2=sampler_line(self.VAR_HIGH,10)
 		SPIKE,SPIKE2=sampler_line([True],[False]) 
 		y = yList_create(AVG,VAR,SPIKE,SPIKE_H,DURATION)
 		y2 = yList_create(AVG2,VAR2,SPIKE2,SPIKE_H,DURATION)
@@ -52,10 +52,9 @@ class MyBeautifulGraph(Scene):
 			axis_config={'color': BLACK}
 		)
 
-
+		self.add(axes)
 		plot = build_plot(axes, x, y, color=RED)
 		plot2 = build_plot(axes, x, y2, color=BLUE)
-		self.add(axes)
 		self.play(Create(plot["line"],run_time=6,rate_func=rate_functions.unit_interval(linear)))
 		self.play(Create(plot2["line"],run_time=2,rate_func=rate_functions.unit_interval(linear)))
 		self.wait()
