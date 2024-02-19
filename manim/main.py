@@ -138,6 +138,7 @@ class Plot(Scene):
 				axis_config={'color': BLACK}
 			)
 			self.add(axes)
+			#TODO: USE ARGS HERE
 			# if args.move=='seq' and args.trace and args.history :
 			for i in range(LINE_NUM):
 				plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i])
@@ -149,8 +150,20 @@ class Plot(Scene):
 			self.next_section(name=f"trace_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}.gif")
 
 
+#TODO: USE ARGS HERE
+if args.move=='seq' and args.trace and args.history :
+	cfg={"quality": "low_quality","frame_rate":60,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"seq_trace_his{LINE_NUM}","flush_cache":True,"progress_bar":'none'}
+elif args.move=='seq' and args.trace and not args.history :
+	cfg={"quality": "low_quality","frame_rate":60,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"seq_trace_nohis{LINE_NUM}","flush_cache":True,"progress_bar":'none'}
+elif args.move=='seq' and not args.trace and args.history :
+	cfg={"quality": "low_quality","frame_rate":60,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"seq_notrace_his{LINE_NUM}","flush_cache":True,"progress_bar":'none'}
+elif args.move=='seq' and not args.trace and not args.history :
+	cfg={"quality": "low_quality","frame_rate":60,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"seq_notrace_nohis{LINE_NUM}","flush_cache":True,"progress_bar":'none'}
+elif args.move=='sync' and args.trace :
+	cfg={"quality": "low_quality","frame_rate":60,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"sync_trace{LINE_NUM}","flush_cache":True,"progress_bar":'none'}
+elif args.move=='sync' and not args.trace:
+	cfg={"quality": "low_quality","frame_rate":60,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"sync_notrace{LINE_NUM}","flush_cache":True,"progress_bar":'none'}
 
-cfg={"quality": "low_quality","frame_rate":60,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"{LINE_NUM}","flush_cache":True,"progress_bar":'none'}
 with tempconfig(cfg):
 	scene = Plot()
 	scene.render()
