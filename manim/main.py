@@ -99,9 +99,8 @@ def yList_create(avg,var,spike,spike_h,duration):
 		variation[np.random.randint(duration)]+=spike_h*var
 	return baseline+variation
 
-def build_plot(axes, x, y, color):
-	line = axes.plot_line_graph(x, y, add_vertex_dots=False, line_color=color)
-	return VDict({"line": line})
+def build_plot(axes, x, y, color,is_dot):
+	return axes.plot_line_graph(x, y, add_vertex_dots=is_dot, line_color=color)
 
 class Plot(Scene):
 	def load(self):
@@ -137,20 +136,64 @@ class Plot(Scene):
 				tips=False,
 				axis_config={'color': BLACK}
 			)
-			self.add(axes)
-			#TODO: USE ARGS HERE
-			# if args.move=='seq' and args.trace and args.history :
-			for i in range(LINE_NUM):
-				plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i])
-				self.play(Create(plot["line"],run_time=1,rate_func=rate_functions.unit_interval(linear)))
-			
-			# config["output_file"]=f"trace_{colorName}.gif"
-			# with writer.saving(fig, f"testgif/seq_trace_his/line{LINE_NUM}/trace_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.gif", 100):
+			# self.add(axes)
+			self.clear()
+			if args.move=='seq' and args.trace and args.history :
+				for i in range(LINE_NUM):
+					self.add(axes) 
+					plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i], is_dot=False)
+					self.play(Create(plot,run_time=1,rate_func=rate_functions.unit_interval(linear)))
+			if args.move=='seq' and not args.trace and not args.history :	
+				for i in range(LINE_NUM):
+					self.add(axes) 
+					plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION),color=pallete[i], is_dot=True)
+					d1 = Dot(color=pallete[i]).move_to(axes.c2p(0, 0))
+					line_graph = plot["line_graph"]
+					self.play(MoveAlongPath(d1, line_graph),run_time=1, rate_func=linear)
+			if args.move=='seq' and not args.trace and args.history :	
+				for i in range(LINE_NUM):
+					self.add(axes) 
+					plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION),color=pallete[i], is_dot=True)
+					d1 = Dot(color=pallete[i]).move_to(axes.c2p(0, 0))
+					line_graph = plot["line_graph"]
+					self.play(MoveAlongPath(d1, line_graph),run_time=1, rate_func=linear)
+					self.add(line_graph)	
+			if args.move=='seq' and args.trace and not args.history :
+				for i in range(LINE_NUM):
+					self.add(axes) 
+					plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i], is_dot=False)
+					self.play(Create(plot,run_time=1),rate_func=linear)
+					self.clear()
+			if args.move=='sync' and args.trace:
+				self.add(axes) 
+				plotlist=[]
+				for i in range(LINE_NUM):
+					time=1*LINE_NUM
+					plotlist.append(build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i], is_dot=False))
+				if LINE_NUM == 2:
+					self.play(Create(plotlist[0],run_time=time,rate_func=rate_functions.unit_interval(linear)),Create(plotlist[1],run_time=time,rate_func=rate_functions.unit_interval(linear)))
+				if LINE_NUM == 3:
+					self.play(Create(plotlist[0],run_time=time,rate_func=rate_functions.unit_interval(linear)),Create(plotlist[1],run_time=time,rate_func=rate_functions.unit_interval(linear)),Create(plotlist[2],run_time=time,rate_func=rate_functions.unit_interval(linear)))
+				if LINE_NUM == 4:
+					self.play(Create(plotlist[0],run_time=time,rate_func=rate_functions.unit_interval(linear)),Create(plotlist[1],run_time=time,rate_func=rate_functions.unit_interval(linear)),Create(plotlist[2],run_time=time,rate_func=rate_functions.unit_interval(linear)),Create(plotlist[3],run_time=time,rate_func=rate_functions.unit_interval(linear)))
+			if args.move=='sync' and not args.trace:
+				self.add(axes) 
+				time=1*LINE_NUM
+				plotlist=[]
+				for i in range(LINE_NUM):
+					plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION),color=pallete[i], is_dot=True)
+					d1 = Dot(color=pallete[i]).move_to(axes.c2p(0, 0))
+					line_graph = plot["line_graph"]
+					plotlist.append(MoveAlongPath(d1, line_graph))
+				if LINE_NUM == 2:
+					self.play(plotlist[0],plotlist[1],run_time=time, rate_func=linear)
+				if LINE_NUM == 3:
+					self.play(plotlist[0],plotlist[1],plotlist[2],run_time=time, rate_func=linear)
+				if LINE_NUM == 4:
+					self.play(plotlist[0],plotlist[1],plotlist[2],plotlist[3],run_time=time, rate_func=linear)
 			self.wait()
 			self.next_section(name=f"trace_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}.gif")
 
-
-#TODO: USE ARGS HERE
 if args.move=='seq' and args.trace and args.history :
 	cfg={"quality": "low_quality","frame_rate":60,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"seq_trace_his{LINE_NUM}","flush_cache":True,"progress_bar":'none'}
 elif args.move=='seq' and args.trace and not args.history :
