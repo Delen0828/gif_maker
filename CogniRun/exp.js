@@ -106,7 +106,7 @@ var gifShow = {
     type: jsPsychImageKeyboardResponse,
     stimulus: '../testgif/'+gif_name,
     choices: "NO_KEYS",
-    prompt: "<p>Study this vis for 8 seconds.</p>",
+    prompt: "<p>Study this vis for 5 seconds.</p>",
 	  render_on_canvas:false,
     trial_duration: 8000
 	// stimulus_duration:4500
