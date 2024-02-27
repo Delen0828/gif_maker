@@ -22,10 +22,10 @@ for filename in os.listdir('data'):
 
 		cfg_list=[]
 		data_pair_list=[]
-		cmap = plt.get_cmap('tab10')
+		cmap =['#117733','#88CCEE','#DDCC77','#AA4499'] 
 		it=0
 		for city, late in delay.items():
-			color=cmap(it)
+			color=cmap[it]
 			cfg,=plt.plot([],[],color=color)
 			cfg_list.append(cfg)
 			time=timestamp[city]
@@ -41,7 +41,7 @@ for filename in os.listdir('data'):
 		plt.ylabel('Latency (ms)')
 		# metadata = dict(title="Movie", artist="sourabh")
 		writer = anime.PillowWriter(fps=50)
-		with writer.saving(fig, os.path.join('res/seq_trace', purename+'.gif'), 100):
+		with writer.saving(fig, os.path.join('res/seq_trace_his', purename+'.gif'), 100):
 			for i in range(len(cfg_list)):
 				# print(data_pair_list[i][0][100])
 				for j in range(0,100):

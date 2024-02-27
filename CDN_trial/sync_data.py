@@ -22,10 +22,10 @@ for filename in os.listdir('data'):
 
 		cfg_list=[]
 		data_pair_list=[]
-		cmap = plt.get_cmap('tab10')
+		cmap = ['#117733','#88CCEE','#DDCC77','#AA4499'] 
 		it=0
 		for city, late in delay.items():
-			color=cmap(it)
+			color=cmap[it]
 			cfg,=plt.plot([],[],color=color)
 			cfg_list.append(cfg)
 			time=timestamp[city]
