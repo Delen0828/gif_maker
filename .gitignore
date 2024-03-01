@@ -4,5 +4,6 @@
 *.mp4
 *.log
 *.tex
+*.csv
 partial_movie_file_list.txt
 Plot.json
