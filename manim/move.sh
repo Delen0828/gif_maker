@@ -1,8 +1,8 @@
 process_json() {
     root_dir="$1"
-    ~/jq.exe -c '.[]' "$root_dir/Plot.json" | while IFS= read -r item; do
-        name=$(~/jq.exe -r '.name' <<< "$item")
-        video=$(~/jq.exe -r '.video' <<< "$item")
+    jq -c '.[]' "$root_dir/Plot.json" | while IFS= read -r item; do
+        name=$(jq -r '.name' <<< "$item")
+        video=$(jq -r '.video' <<< "$item")
         # echo "Name: $name, Video: $video"
         cp "$root_dir/$video" "out/$name"
     done
