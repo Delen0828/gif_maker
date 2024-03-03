@@ -20,10 +20,11 @@ parser.add_argument("--history", type=bool, default=False)
 parser.add_argument("--move", choices=['seq','sync', 'stat'],help="seq or sync or stat")
 parser.add_argument("--static", type=bool, default=False)
 parser.add_argument("--sample", type=int, default=5)
-
+parser.add_argument("--time", type=float, default=4.0)
 # Parse the command-line arguments
 args = parser.parse_args()
 # print(args)
+UNIT_TIME =  args.time/4
 
 with open('mean.pkl','rb') as f:
 	mean_list=pickle.load(f)
@@ -164,7 +165,7 @@ class Plot(Scene):
 					for i in range(LINE_NUM):
 						self.add(axes) 
 						plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i], is_dot=False)
-						self.play(Create(plot,run_time=1,rate_func=rate_functions.unit_interval(linear)))
+						self.play(Create(plot,run_time=UNIT_TIME,rate_func=rate_functions.unit_interval(linear)))
 					self.wait()
 					self.next_section(name=f"seq_trace_his_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.mp4")
 				if args.move=='seq' and not args.trace and not args.history :	
@@ -173,7 +174,7 @@ class Plot(Scene):
 						plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION),color=pallete[i], is_dot=True)
 						d1 = Dot(color=pallete[i]).move_to(axes.c2p(0, 0))
 						line_graph = plot["line_graph"]
-						self.play(MoveAlongPath(d1, line_graph),run_time=1, rate_func=linear)
+						self.play(MoveAlongPath(d1, line_graph),run_time=UNIT_TIME, rate_func=linear)
 					self.wait()
 					self.next_section(name=f"seq_notrace_nohis_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.mp4")
 				if args.move=='seq' and not args.trace and args.history :	
@@ -182,7 +183,7 @@ class Plot(Scene):
 						plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION),color=pallete[i], is_dot=True)
 						d1 = Dot(color=pallete[i]).move_to(axes.c2p(0, 0))
 						line_graph = plot["line_graph"]
-						self.play(MoveAlongPath(d1, line_graph),run_time=1, rate_func=linear)
+						self.play(MoveAlongPath(d1, line_graph),run_time=UNIT_TIME, rate_func=linear)
 						self.add(line_graph)
 					self.wait()
 					self.next_section(name=f"seq_notrace_his_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.mp4")
@@ -190,7 +191,7 @@ class Plot(Scene):
 					for i in range(LINE_NUM):
 						self.add(axes) 
 						plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i], is_dot=False)
-						self.play(Create(plot,run_time=1),rate_func=linear)
+						self.play(Create(plot,run_time=UNIT_TIME),rate_func=linear)
 						self.clear()
 					self.wait()
 					self.next_section(name=f"seq_trace_nohis_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.mp4")
@@ -198,7 +199,7 @@ class Plot(Scene):
 					self.add(axes) 
 					plotlist=[]
 					for i in range(LINE_NUM):
-						time=1*LINE_NUM
+						time=UNIT_TIME*LINE_NUM
 						plotlist.append(build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i], is_dot=False))
 					if LINE_NUM == 2:
 						self.play(Create(plotlist[0],run_time=time,rate_func=rate_functions.unit_interval(linear)),Create(plotlist[1],run_time=time,rate_func=rate_functions.unit_interval(linear)))
@@ -210,7 +211,7 @@ class Plot(Scene):
 					self.next_section(name=f"sync_trace_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.mp4")
 				if args.move=='sync' and not args.trace:
 					self.add(axes) 
-					time=1*LINE_NUM
+					time=UNIT_TIME*LINE_NUM
 					plotlist=[]
 					for i in range(LINE_NUM):
 						plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION),color=pallete[i], is_dot=True)
