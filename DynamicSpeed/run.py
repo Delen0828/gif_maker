@@ -9,11 +9,19 @@ SAMPLE_TIME=1
 DURATION=100
 SPIKE_H=10
 
+#TODO: Time should be defualt time
+#TODO: Other time should be default time * (mean, spike, var etc.)
+#TODO: The function should be, low, med, med, high
 
-# Create an ArgumentParser object
+def speedScale(default_time,value_list):
+	Min=min(value_list)
+	Max=max(value_list)
+	return [(1+((Max-value)/(Max-Min)))*default_time for value in value_list]
+def speedBinaryScale(default_time,value_list):
+	return [default_time*(2-value) for value in value_list]
+
 parser = argparse.ArgumentParser(description="Sample")
 
-# Define the expected named arguments
 parser.add_argument("--line", type=int, help="line number")
 parser.add_argument("--trace", type=bool, default=False)
 parser.add_argument("--history", type=bool, default=False)
@@ -21,7 +29,8 @@ parser.add_argument("--move", choices=['seq','sync', 'stat'],help="seq or sync o
 parser.add_argument("--static", type=bool, default=False)
 parser.add_argument("--sample", type=int, default=5)
 parser.add_argument("--time", type=float, default=4.0)
-# Parse the command-line arguments
+parser.add_argument("--time_encode", choices=['avg','var','spk'])
+
 args = parser.parse_args()
 # print(args)
 UNIT_TIME =  args.time/4
@@ -126,20 +135,18 @@ class Plot(Scene):
 				for color in pallete:
 					colorName+=(COLOR_NAME[color])
 				if idx==0:
-					if args.move == 'stat':
-						self.next_section(name=f"static_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.mp4")
 					if args.move=='seq' and args.trace and args.history :
-						self.next_section(name=f"seq_trace_his_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.mp4")
+						self.next_section(name=f"seq_trace_his_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
 					if args.move=='seq' and not args.trace and not args.history :	
-						self.next_section(name=f"seq_notrace_nohis_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.mp4")
+						self.next_section(name=f"seq_notrace_nohis_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
 					if args.move=='seq' and not args.trace and args.history :	
-						self.next_section(name=f"seq_notrace_his_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.mp4")
+						self.next_section(name=f"seq_notrace_his_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
 					if args.move=='seq' and args.trace and not args.history :
-						self.next_section(name=f"seq_trace_nohis_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.mp4")
+						self.next_section(name=f"seq_trace_nohis_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
 					if args.move=='sync' and args.trace:
-						self.next_section(name=f"sync_trace_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.mp4")
+						self.next_section(name=f"sync_trace_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
 					if args.move=='sync' and not args.trace:
-						self.next_section(name=f"sync_notrace_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_{sample}.mp4")
+						self.next_section(name=f"sync_notrace_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
 				self.clear()
 				AVG=sampler_line('hhhh',AVG_HIGH,AVG_LOW)
 				VAR=sampler_line('hhhh',VAR_HIGH,VAR_LOW)
@@ -154,18 +161,24 @@ class Plot(Scene):
 				)
 				# self.add(axes)
 				self.clear()
-				if args.move == 'stat':
-					for i in range(LINE_NUM):
-						self.add(axes)
-						plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i], is_dot=False)
-						self.add(plot)
-					self.wait(5)
-					self.next_section(name=f"static_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
+				# if args.move == 'stat':
+				# 	for i in range(LINE_NUM):
+				# 		self.add(axes)
+				# 		plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i], is_dot=False)
+				# 		self.add(plot)
+				# 	self.wait(5)
+					# self.next_section(name=f"static_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
+				if args.time_encode == 'avg':
+					speed_list=speedScale(UNIT_TIME,AVG)
+				elif args.time_encode == 'var':
+					speed_list=speedScale(UNIT_TIME,VAR)
+				elif args.time_encode == 'spk':
+					speed_list=speedBinaryScale(UNIT_TIME,SPIKE)
 				if args.move=='seq' and args.trace and args.history :
 					for i in range(LINE_NUM):
 						self.add(axes) 
 						plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i], is_dot=False)
-						self.play(Create(plot,run_time=UNIT_TIME,rate_func=rate_functions.unit_interval(linear)))
+						self.play(Create(plot,run_time=speed_list[i],rate_func=rate_functions.unit_interval(linear)))
 					self.wait()
 					self.next_section(name=f"seq_trace_his_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
 				if args.move=='seq' and not args.trace and not args.history :	
@@ -174,7 +187,7 @@ class Plot(Scene):
 						plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION),color=pallete[i], is_dot=True)
 						d1 = Dot(color=pallete[i]).move_to(axes.c2p(0, 0))
 						line_graph = plot["line_graph"]
-						self.play(MoveAlongPath(d1, line_graph),run_time=UNIT_TIME, rate_func=linear)
+						self.play(MoveAlongPath(d1, line_graph),run_time=speed_list[i], rate_func=linear)
 					self.wait()
 					self.next_section(name=f"seq_notrace_nohis_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
 				if args.move=='seq' and not args.trace and args.history :	
@@ -183,7 +196,7 @@ class Plot(Scene):
 						plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION),color=pallete[i], is_dot=True)
 						d1 = Dot(color=pallete[i]).move_to(axes.c2p(0, 0))
 						line_graph = plot["line_graph"]
-						self.play(MoveAlongPath(d1, line_graph),run_time=UNIT_TIME, rate_func=linear)
+						self.play(MoveAlongPath(d1, line_graph),run_time=speed_list[i], rate_func=linear)
 						self.add(line_graph)
 					self.wait()
 					self.next_section(name=f"seq_notrace_his_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
@@ -191,7 +204,7 @@ class Plot(Scene):
 					for i in range(LINE_NUM):
 						self.add(axes) 
 						plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i], is_dot=False)
-						self.play(Create(plot,run_time=UNIT_TIME),rate_func=linear)
+						self.play(Create(plot,run_time=speed_list[i]),rate_func=linear)
 						self.clear()
 					self.wait()
 					self.next_section(name=f"seq_trace_nohis_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
@@ -199,48 +212,46 @@ class Plot(Scene):
 					self.add(axes) 
 					plotlist=[]
 					for i in range(LINE_NUM):
-						time=UNIT_TIME*LINE_NUM
+						time=speed_list*LINE_NUM
 						plotlist.append(build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION), color=pallete[i], is_dot=False))
 					if LINE_NUM == 2:
-						self.play(Create(plotlist[0],run_time=time,rate_func=rate_functions.unit_interval(linear)),Create(plotlist[1],run_time=time,rate_func=rate_functions.unit_interval(linear)))
+						self.play(Create(plotlist[0],run_time=time[0],rate_func=rate_functions.unit_interval(linear)),Create(plotlist[1],run_time=time[1],rate_func=rate_functions.unit_interval(linear)))
 					if LINE_NUM == 3:
-						self.play(Create(plotlist[0],run_time=time,rate_func=rate_functions.unit_interval(linear)),Create(plotlist[1],run_time=time,rate_func=rate_functions.unit_interval(linear)),Create(plotlist[2],run_time=time,rate_func=rate_functions.unit_interval(linear)))
+						self.play(Create(plotlist[0],run_time=time[0],rate_func=rate_functions.unit_interval(linear)),Create(plotlist[1],run_time=time[1],rate_func=rate_functions.unit_interval(linear)),Create(plotlist[2],run_time=time[2],rate_func=rate_functions.unit_interval(linear)))
 					if LINE_NUM == 4:
-						self.play(Create(plotlist[0],run_time=time,rate_func=rate_functions.unit_interval(linear)),Create(plotlist[1],run_time=time,rate_func=rate_functions.unit_interval(linear)),Create(plotlist[2],run_time=time,rate_func=rate_functions.unit_interval(linear)),Create(plotlist[3],run_time=time,rate_func=rate_functions.unit_interval(linear)))
+						self.play(Create(plotlist[0],run_time=time[0],rate_func=rate_functions.unit_interval(linear)),Create(plotlist[1],run_time=time[1],rate_func=rate_functions.unit_interval(linear)),Create(plotlist[2],run_time=time[2],rate_func=rate_functions.unit_interval(linear)),Create(plotlist[3],run_time=time[3],rate_func=rate_functions.unit_interval(linear)))
 					self.wait()
 					self.next_section(name=f"sync_trace_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
 				if args.move=='sync' and not args.trace:
-					self.add(axes) 
-					time=UNIT_TIME*LINE_NUM
+					self.add(axes)
+					time=speed_list*LINE_NUM
 					plotlist=[]
 					for i in range(LINE_NUM):
 						plot=build_plot(axes, xList_create(DURATION), yList_create(AVG[i],VAR[i],SPIKE[i],SPIKE_H,DURATION),color=pallete[i], is_dot=True)
 						d1 = Dot(color=pallete[i]).move_to(axes.c2p(0, 0))
 						line_graph = plot["line_graph"]
-						plotlist.append(MoveAlongPath(d1, line_graph))
+						plotlist.append(MoveAlongPath(d1, line_graph, run_time=time[i]))
 					if LINE_NUM == 2:
-						self.play(plotlist[0],plotlist[1],run_time=time, rate_func=linear)
+						self.play(plotlist[0],plotlist[1], rate_func=linear)
 					elif LINE_NUM == 3:
-						self.play(plotlist[0],plotlist[1],plotlist[2],run_time=time, rate_func=linear)
+						self.play(plotlist[0],plotlist[1],plotlist[2], rate_func=linear)
 					elif LINE_NUM == 4:
-						self.play(plotlist[0],plotlist[1],plotlist[2],plotlist[3],run_time=time, rate_func=linear)
+						self.play(plotlist[0],plotlist[1],plotlist[2],plotlist[3], rate_func=linear)
 					self.wait()
 					self.next_section(name=f"sync_notrace_{LINE_NUM}_AVG{acfg}_VAR{vcfg}_SPIKE{scfg}_{colorName}_time{args.time}.mp4")
 
 if args.move=='seq' and args.trace and args.history :
-	cfg={"quality": "low_quality","frame_rate":30,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"seq_trace_his{args.time}","flush_cache":True,"progress_bar":'none'}
+	cfg={"quality": "low_quality","frame_rate":30,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"{args.time_encode}_seq_trace_his{args.time}","flush_cache":True,"progress_bar":'none'}
 elif args.move=='seq' and args.trace and not args.history :
-	cfg={"quality": "low_quality","frame_rate":30,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"seq_trace_nohis{args.time}","flush_cache":True,"progress_bar":'none'}
+	cfg={"quality": "low_quality","frame_rate":30,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"{args.time_encode}_seq_trace_nohis{args.time}","flush_cache":True,"progress_bar":'none'}
 elif args.move=='seq' and not args.trace and args.history :
-	cfg={"quality": "low_quality","frame_rate":30,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"seq_notrace_his{args.time}","flush_cache":True,"progress_bar":'none'}
+	cfg={"quality": "low_quality","frame_rate":30,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"{args.time_encode}_seq_notrace_his{args.time}","flush_cache":True,"progress_bar":'none'}
 elif args.move=='seq' and not args.trace and not args.history :
-	cfg={"quality": "low_quality","frame_rate":30,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"seq_notrace_nohis{args.time}","flush_cache":True,"progress_bar":'none'}
+	cfg={"quality": "low_quality","frame_rate":30,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"{args.time_encode}_seq_notrace_nohis{args.time}","flush_cache":True,"progress_bar":'none'}
 elif args.move=='sync' and args.trace :
-	cfg={"quality": "low_quality","frame_rate":30,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"sync_trace{args.time}","flush_cache":True,"progress_bar":'none'}
+	cfg={"quality": "low_quality","frame_rate":30,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"{args.time_encode}_sync_trace{args.time}","flush_cache":True,"progress_bar":'none'}
 elif args.move=='sync' and not args.trace:
-	cfg={"quality": "low_quality","frame_rate":30,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"sync_notrace{args.time}","flush_cache":True,"progress_bar":'none'}
-elif args.move=='stat':
-	cfg={"quality": "low_quality","frame_rate":30,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"static{args.time}","flush_cache":True,"progress_bar":'none'}
+	cfg={"quality": "low_quality","frame_rate":30,"background_color": WHITE, "save_sections": True, "silent":True, "verbosity": 'ERROR',"use_opengl_renderer":True, "media_dir":f"{args.time_encode}_sync_notrace{args.time}","flush_cache":True,"progress_bar":'none'}
 
 with tempconfig(cfg):
 	scene = Plot()

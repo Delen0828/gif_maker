@@ -1,0 +1,166 @@
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<title>Line Chart Animation</title>
+		<script src="https://d3js.org/d3.v7.min.js"></script>
+		<style>
+			.line {
+				fill: none;
+				stroke-width: 2px;
+			}
+		</style>
+	</head>
+	<body>
+		<svg width="600" height="400"></svg>
+
+		<script>
+			const parseTime = d3.timeParse("%Y-%m-%d");
+			// data.forEach(d => {
+			// 	d.date = parseTime(d.date);
+			// });
+			const svg = d3.select("svg");
+			const margin = {top: 20, right: 20, bottom: 30, left: 50};
+			const width = +svg.attr("width") - margin.left - margin.right;
+			const height = +svg.attr("height") - margin.top - margin.bottom;
+			const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+			const x = d3.scaleTime().rangeRound([0, width]);
+			const y = d3.scaleLinear().rangeRound([height, 0]);
+
+			const line = d3.line()
+				.x(d => x(d.date))
+				.y(d => y(d.value));
+
+			const colors = d3.schemeCategory10;
+
+			d3.csv("data.csv").then(data => {
+				data.forEach(d => {
+					d.date = parseTime(d.date);
+					for (const key of data.columns.slice(1)) {
+						d[key] = +d[key];
+					}
+				});
+				const series = data.columns.slice(1).map(key => {
+					return {
+						id: key,
+						values: data.map(d => {
+							return {date: d.date, value: d[key]};
+						})
+					};
+				});
+
+				x.domain(d3.extent(data, d => d.date));
+				y.domain([
+					d3.min(series, s => d3.min(s.values, d => d.value)),
+					d3.max(series, s => d3.max(s.values, d => d.value))
+				]);
+
+				g.append("g")
+					.attr("class", "axis axis--x")
+					.attr("transform", `translate(0,${height})`)
+					.call(d3.axisBottom(x));
+
+				g.append("g")
+					.attr("class", "axis axis--y")
+					.call(d3.axisLeft(y))
+					.append("text")
+					.attr("fill", "#000")
+					.attr("transform", "rotate(-90)")
+					.attr("y", 6)
+					.attr("dy", "0.71em")
+					.attr("text-anchor", "end")
+					.text("Value");
+
+				const serie = g.selectAll(".serie")
+					.data(series)
+					.enter().append("g")
+					.attr("class", "serie");
+
+				serie.append("path")
+					.attr("class", "line")
+					.style("stroke", (d, i) => colors[i % colors.length])
+					.attr("d", d => line(d.values))
+					.attr("stroke-dasharray", function() {console.log(this.getTotalLength() + " " + this.getTotalLength()); return this.getTotalLength() + " " + this.getTotalLength(); })
+					.attr("stroke-dashoffset", function() { return this.getTotalLength(); })
+					.transition()
+					.duration(5000)
+					.attr("stroke-dashoffset", 0);
+
+				// const dots = serie.append("circle")
+				// 	.attr("class", "dot")
+				// 	.attr("r", 5)
+				// 	.attr("cx", x(series[0].values[0].date)) 
+				// 	.attr("cy", y(series[0].values[0].date))
+				// 	.each(function(d) {
+					
+                //     // Update the dot's position during the line animation
+                //     d3.select(this)
+                //         .transition()
+                //         .duration(5000)
+                //         .attrTween("cy", function() {
+                //             return function(t) {
+                //                 const index = Math.floor(t * (d.values.length - 1));
+                //                 const current = d.values[index];
+                //                 return y(current.value);
+                //             };
+                //         });
+                // });
+				// // Function to update dot position
+				// function updateDotPosition() {
+				// 	dots.each(function(d) {
+				// 		var dot = d3.select(this);
+				// 		var pathLength = this.parentNode.querySelector('.line').getTotalLength();
+				// 		var currentPos = pathLength * (1 - dot.node().getTotalLength() / pathLength);
+				// 		var currentPoint = this.parentNode.querySelector('.line').getPointAtLength(currentPos);
+
+				// 		if (y.invert(currentPoint.y) > 30) {
+				// 			dot.attr('cx', currentPoint.x)
+				// 				.attr('cy', currentPoint.y)
+				// 				.style('visibility', 'visible');
+				// 		} else {
+				// 			dot.attr('cx', currentPoint.x)
+				// 				.attr('cy', currentPoint.y)
+				// 				.style('visibility', 'hidden');
+				// 		}
+				// 	});
+				// }
+				// d3.interval(() => {
+				// 	updateDotPosition();
+				// }, 1000);
+			});
+		</script>
+	</body>
+	</html>
+
+
+<!-- 
+
+	// Add a dot for each series
+	const dots = serie.append("circle")
+		.attr("class", "dot")
+		.attr("r", 5)
+		.attr("cx", x(series[0].values[0].date)) // Initial x position
+		.attr("cy", y(series[0].values[0].date)); // Initial y position (off the chart)
+
+	// Function to update dot position
+	function updateDotPosition() {
+		dots.each(function(d) {
+			const dot = d3.select(this);
+			const pathLength = this.parentNode.querySelector('.line').getTotalLength();
+			const currentPos = pathLength * (1 - dot.node().getTotalLength() / pathLength);
+			const currentPoint = this.parentNode.querySelector('.line').getPointAtLength(currentPos);
+
+			if (y.invert(currentPoint.y) > 50) {
+				dot.attr('cx', currentPoint.x)
+					.attr('cy', currentPoint.y)
+					.style('visibility', 'visible');
+			} else {
+				dot.style('visibility', 'hidden');
+			}
+		});
+	}
+
+	// Update dot position during the line animation
+	d3.interval(() => {
+		updateDotPosition();
+	}, 100); -->
